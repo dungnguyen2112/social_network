@@ -6,6 +6,10 @@ import com.example.btljava.service.FollowService;
 import com.example.btljava.service.UserService;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,9 +26,33 @@ public class FollowController {
         this.userService = userService;
     }
 
+     // Method to extract userId from SecurityContext
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authentication: " + authentication); // Log for debugging
+
+        if (authentication instanceof JwtAuthenticationToken) {
+            JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
+            Jwt jwt = jwtAuthToken.getToken();
+            System.out.println("JWT Claims: " + jwt.getClaims()); // Log to check claims
+
+            Long userId = jwt.getClaim("id"); // Extract userId from JWT claims
+            System.out.println("Extracted User ID: " + userId); // Log to check extracted ID
+
+            if (userId == null) {
+                throw new IllegalStateException("User ID is null; check your JWT claims.");
+            }
+            return userId;
+        }
+
+        throw new IllegalArgumentException("User is not authenticated");
+    }
+
+
     @PostMapping("/{userId}/follow")
-    public ResponseEntity<String> followUser(@PathVariable Long userId,
-            @RequestAttribute User currentUser) {
+    public ResponseEntity<String> followUser(@PathVariable Long userId) {
+        Long followerId = getCurrentUserId();
+        User currentUser = userService.fetchUserById(followerId);
         User followedUser = userService.fetchUserById(userId);
         if (followedUser == null) {
             return ResponseEntity.notFound().build();
@@ -34,8 +62,9 @@ public class FollowController {
     }
 
     @PostMapping("/{userId}/unfollow")
-    public ResponseEntity<String> unfollowUser(@PathVariable Long userId,
-            @RequestAttribute User currentUser) {
+    public ResponseEntity<String> unfollowUser(@PathVariable Long userId) {
+        Long followerId = getCurrentUserId();
+        User currentUser = userService.fetchUserById(followerId);
         User followedUser = userService.fetchUserById(userId);
         if (followedUser == null) {
             return ResponseEntity.notFound().build();

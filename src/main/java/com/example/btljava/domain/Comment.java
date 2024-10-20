@@ -39,5 +39,7 @@ public class Comment {
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
 
+    private Integer likesCount = 0;
+    private Integer repliesCount = 0;
     // Getters and Setters
 }

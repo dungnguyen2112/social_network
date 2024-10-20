@@ -4,6 +4,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import com.turkraft.springfilter.boot.Filter;
@@ -32,6 +36,28 @@ public class PostController {
         this.userService = userService;
     }
 
+    // Method to extract userId from SecurityContext
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authentication: " + authentication); // Log for debugging
+
+        if (authentication instanceof JwtAuthenticationToken) {
+            JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
+            Jwt jwt = jwtAuthToken.getToken();
+            System.out.println("JWT Claims: " + jwt.getClaims()); // Log to check claims
+
+            Long userId = jwt.getClaim("id"); // Extract userId from JWT claims
+            System.out.println("Extracted User ID: " + userId); // Log to check extracted ID
+
+            if (userId == null) {
+                throw new IllegalStateException("User ID is null; check your JWT claims.");
+            }
+            return userId;
+        }
+
+        throw new IllegalArgumentException("User is not authenticated");
+    }
+
     @PostMapping("/posts/create")
     @ApiMessage("Create a new post")
     public ResponseEntity<ResCreatePostDTO> createNewPost(@Valid @RequestBody CreatePostRequestDTO request)
@@ -42,9 +68,9 @@ public class PostController {
         post.setContent(request.getContent());
 
         // Giả sử bạn có phương thức để lấy User từ userId
-        User user = userService.fetchUserById(request.getUserId());
+        User user = userService.fetchUserById(getCurrentUserId());
         if (user == null) {
-            throw new IdInvalidException("User with id = " + request.getUserId() + " does not exist");
+            throw new IdInvalidException("User with id = " + getCurrentUserId() + " does not exist");
         }
         post.setUser(user); // Thiết lập người dùng
 

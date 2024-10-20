@@ -66,6 +66,7 @@ public class SecurityUtil {
             .issuedAt(now)
             .expiresAt(validity)
             .subject(email)
+            .claim("id", userToken.getId())
             .claim("user", userToken)
             .claim("permission", listAuthority)
             .build();

@@ -11,17 +11,17 @@ public class CreatePostRequestDTO {
     @NotBlank(message = "Content is mandatory")
     private String content;
 
-    @NotNull(message = "User ID is mandatory")
-    private Long userId;
+    // @NotNull(message = "User ID is mandatory")
+    // private Long userId;
 
     // Constructors
     public CreatePostRequestDTO() {
     }
 
-    public CreatePostRequestDTO(String title, String content, Long userId) {
+    public CreatePostRequestDTO(String title, String content) {
         this.title = title;
         this.content = content;
-        this.userId = userId;
+        // this.userId = userId;
     }
 
     // Getters and Setters
@@ -41,11 +41,11 @@ public class CreatePostRequestDTO {
         this.content = content;
     }
 
-    public Long getUserId() {
-        return userId;
-    }
+    // public Long getUserId() {
+    // return userId;
+    // }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+    // public void setUserId(Long userId) {
+    // this.userId = userId;
+    // }
 }
