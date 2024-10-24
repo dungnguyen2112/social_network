@@ -115,7 +115,6 @@ public class UserService {
 
     public ResUpdateUserDTO convertToResUpdateUserDTO(User user) {
         ResUpdateUserDTO res = new ResUpdateUserDTO();
-        ResUpdateUserDTO.CompanyUser com = new ResUpdateUserDTO.CompanyUser();
         res.setId(user.getId());
         res.setName(user.getName());
         res.setUpdatedAt(user.getUpdatedAt());

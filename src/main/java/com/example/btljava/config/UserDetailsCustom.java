@@ -1,7 +1,10 @@
 package com.example.btljava.config;
 
 import java.util.Collections;
+
+import org.hibernate.internal.util.collections.ConcurrentReferenceHashMap.Option;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,14 +12,28 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import com.example.btljava.service.UserService;
+import com.example.btljava.util.SecurityUtil;
+import java.util.Optional;
 
 @Component("userDetailsService")
 public class UserDetailsCustom implements UserDetailsService {
 
     private final UserService userService;
+    private final SecurityUtil securityUtil;
 
-    public UserDetailsCustom(UserService userService) {
+    public UserDetailsCustom(UserService userService, SecurityUtil securityUtil) {
         this.userService = userService;
+        this.securityUtil = securityUtil;
+    }
+
+    // get Current User
+    public com.example.btljava.domain.User getCurrentUser() {
+        Optional<String> currentUser = securityUtil.getCurrentUserLogin();
+        com.example.btljava.domain.User user = userService.handleGetUserByUsernameOrEmail(currentUser.get());
+        if(user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        return user;
     }
 
     @Override

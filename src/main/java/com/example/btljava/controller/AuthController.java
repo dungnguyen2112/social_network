@@ -23,6 +23,7 @@ import com.example.btljava.util.SecurityUtil;
 import com.example.btljava.util.annotation.ApiMessage;
 import com.example.btljava.util.error.IdInvalidException;
 import com.example.btljava.domain.User;
+import com.example.btljava.domain.request.ChangePasswordDTO;
 import com.example.btljava.domain.request.ReqLoginDTO;
 import com.example.btljava.domain.response.ResCreateUserDTO;
 import com.example.btljava.domain.response.ResLoginDTO;
@@ -208,6 +209,24 @@ public class AuthController {
         postManUser.setPasswordHash(hashPassword);
         User ericUser = this.userService.handleCreateUser(postManUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(ericUser));
+    }
+
+    @PostMapping("/auth/change-password")
+    @ApiMessage("Change password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO)
+            throws IdInvalidException {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
+        User currentUser = this.userService.handleGetUserByUsernameOrEmail(email);
+        if (currentUser == null) {
+            throw new IdInvalidException("User không tồn tại");
+        }
+        if (!this.passwordEncoder.matches(changePasswordDTO.getOldPassword(), currentUser.getPasswordHash())) {
+            throw new IdInvalidException("Mật khẩu cũ không đúng");
+        }
+        String hashPassword = this.passwordEncoder.encode(changePasswordDTO.getNewPassword());
+        currentUser.setPasswordHash(hashPassword);
+        this.userService.handleUpdateUser(currentUser);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/auth/forgot-password")
