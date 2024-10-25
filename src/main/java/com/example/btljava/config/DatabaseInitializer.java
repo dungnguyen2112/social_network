@@ -127,6 +127,18 @@ public class DatabaseInitializer implements CommandLineRunner {
                         arr.add(new Permission("Update a post", "/api/v1/posts/update", "PUT",
                                         "POSTS"));
 
+                        // Notification permissions
+                        arr.add(new Permission("Read a notification", "/api/v1/notifications/{notificationId}/read",
+                                        "PUT",
+                                        "NOTIFICATIONS"));
+                        arr.add(new Permission("Fetch all notifications by user", "/api/v1/notifications/user/{userId}",
+                                        "GET", "NOTIFICATIONS"));
+                        arr.add(new Permission("Delete a notification", "/api/v1/notifications/{notificationId}",
+                                        "DELETE", "NOTIFICATIONS"));
+                        arr.add(new Permission("Get all notifications of current user",
+                                        "/api/v1/notifications/user/current",
+                                        "GET", "NOTIFICATIONS"));
+
                         this.permissionRepository.saveAll(arr);
                 }
                 if (countRoles == 0 || countPermissions == 0) {
@@ -170,8 +182,13 @@ public class DatabaseInitializer implements CommandLineRunner {
                         userPermissions.add(this.permissionRepository.findByName("Get following list of a user"));
 
                         // Quyền về xóa tài khoản user (nếu cần)
+                        userPermissions.add(this.permissionRepository.findByName("Get a user by id"));
                         userPermissions.add(this.permissionRepository.findByName("Delete a user"));
 
+                        userPermissions.add(this.permissionRepository.findByName("Read a notification"));
+                        userPermissions.add(
+                                        this.permissionRepository.findByName("Get all notifications of current user"));
+                        userPermissions.add(this.permissionRepository.findByName("Delete a notification"));
                         // Tạo role USER và gán quyền đã lọc
                         Role userRole = new Role();
                         userRole.setName("USER");

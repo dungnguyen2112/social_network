@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserCreateRequestDTO {
-    
+
     @NotBlank(message = "Username is required")
     private String username;
 
@@ -24,7 +24,12 @@ public class UserCreateRequestDTO {
     @NotBlank(message = "Password is required")
     private String password;
 
-    private MultipartFile avatar;
+    private String avatar;
 
+    private String address;
+
+    private int age;
+
+    private String bio;
 
 }

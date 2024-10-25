@@ -1,5 +1,6 @@
 package com.example.btljava.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -110,7 +111,7 @@ public class PostController {
     @ApiMessage("Fetch all posts")
     public ResponseEntity<ResultPaginationDTO> getAllPosts(
             @Filter Specification<Post> spec,
-            Pageable pageable) {
+            @ParameterObject Pageable pageable) {
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 this.postService.fetchAllPost(spec, pageable));

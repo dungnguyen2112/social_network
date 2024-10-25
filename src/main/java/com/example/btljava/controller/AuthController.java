@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,8 +24,10 @@ import com.example.btljava.util.SecurityUtil;
 import com.example.btljava.util.annotation.ApiMessage;
 import com.example.btljava.util.error.IdInvalidException;
 import com.example.btljava.domain.User;
+import com.example.btljava.domain.request.AccountUpdateRequestDTO;
 import com.example.btljava.domain.request.ChangePasswordDTO;
 import com.example.btljava.domain.request.ReqLoginDTO;
+import com.example.btljava.domain.request.UserCreateRequestDTO;
 import com.example.btljava.domain.response.ResCreateUserDTO;
 import com.example.btljava.domain.response.ResLoginDTO;
 
@@ -69,7 +72,8 @@ public class AuthController {
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     currentUserDB.getId(),
                     currentUserDB.getEmail(),
-                    currentUserDB.getName());
+                    currentUserDB.getName(),
+                    currentUserDB.getRole());
             res.setUser(userLogin);
         }
 
@@ -118,6 +122,35 @@ public class AuthController {
         return ResponseEntity.ok().body(userGetAccount);
     }
 
+    @PutMapping("/auth/account")
+    @ApiMessage("Update account")
+    public ResponseEntity<ResLoginDTO.UserGetAccount> updateAccount(@Valid @RequestBody AccountUpdateRequestDTO user) {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent()
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+
+        User currentUserDB = this.userService.handleGetUserByUsernameOrEmail(email);
+        if (currentUserDB != null) {
+            currentUserDB.setName(user.getFullName());
+            currentUserDB.setAddress(user.getAddress());
+            currentUserDB.setAvatarUrl(user.getAvatar());
+            currentUserDB.setBio(user.getBio());
+            this.userService.handleUpdateUser(currentUserDB);
+        }
+
+        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
+        ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount();
+
+        if (currentUserDB != null) {
+            userLogin.setId(currentUserDB.getId());
+            userLogin.setEmail(currentUserDB.getEmail());
+            userLogin.setName(currentUserDB.getName());
+            userGetAccount.setUser(userLogin);
+        }
+
+        return ResponseEntity.ok().body(userGetAccount);
+    }
+
     @GetMapping("/auth/refresh")
     @ApiMessage("Get User by refresh token")
     public ResponseEntity<ResLoginDTO> getRefreshToken(
@@ -142,7 +175,8 @@ public class AuthController {
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     currentUserDB.getId(),
                     currentUserDB.getEmail(),
-                    currentUserDB.getName());
+                    currentUserDB.getName(),
+                    currentUserDB.getRole());
             res.setUser(userLogin);
         }
 
@@ -198,16 +232,28 @@ public class AuthController {
 
     @PostMapping("/auth/register")
     @ApiMessage("Register a new user")
-    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody User postManUser) throws IdInvalidException {
-        boolean isEmailExist = this.userService.isEmailExist(postManUser.getEmail());
+    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody UserCreateRequestDTO userCreateRequestDTO)
+            throws IdInvalidException {
+        boolean isEmailExist = this.userService.isEmailExist(userCreateRequestDTO.getEmail());
         if (isEmailExist) {
             throw new IdInvalidException(
-                    "Email " + postManUser.getEmail() + "đã tồn tại, vui lòng sử dụng email khác.");
+                    "Email " + userCreateRequestDTO.getEmail() + "đã tồn tại, vui lòng sử dụng email khác.");
         }
 
-        String hashPassword = this.passwordEncoder.encode(postManUser.getPasswordHash());
-        postManUser.setPasswordHash(hashPassword);
-        User ericUser = this.userService.handleCreateUser(postManUser);
+        String hashPassword = this.passwordEncoder.encode(userCreateRequestDTO.getPassword());
+        userCreateRequestDTO.setPassword(hashPassword);
+        // convert to User
+        User user = new User();
+        user.setUsername(userCreateRequestDTO.getUsername());
+        user.setEmail(userCreateRequestDTO.getEmail());
+        user.setPasswordHash(userCreateRequestDTO.getPassword());
+        user.setName(userCreateRequestDTO.getName());
+        user.setAddress(userCreateRequestDTO.getAddress());
+        user.setAvatarUrl(userCreateRequestDTO.getAvatar());
+        user.setBio(userCreateRequestDTO.getBio());
+        user.setAge(userCreateRequestDTO.getAge());
+
+        User ericUser = this.userService.handleCreateUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(ericUser));
     }
 

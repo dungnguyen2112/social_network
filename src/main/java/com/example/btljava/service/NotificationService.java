@@ -7,6 +7,7 @@ import com.example.btljava.domain.response.NotificationResponseDTO;
 import com.example.btljava.domain.response.ResultPaginationDTO;
 import com.example.btljava.repository.NotificationRepository;
 import com.example.btljava.repository.UserRepository;
+import com.example.btljava.util.SecurityUtil;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -96,5 +97,23 @@ public class NotificationService {
 
                 resultPaginationDTO.setResult(notifications);
                 return resultPaginationDTO;
+        }
+
+        // Lấy thông báo của người dùng hiện tại
+        public List<NotificationResponseDTO> fetchNotificationsByCurrentUser() {
+                String email = SecurityUtil.getCurrentUserLogin().isPresent()
+                                ? SecurityUtil.getCurrentUserLogin().get()
+                                : "";
+                User user = userRepository.findByEmail(email);
+
+                return notificationRepository.findAllByUserId(user.getId())
+                                .stream()
+                                .map(notification -> new NotificationResponseDTO(
+                                                notification.getId(),
+                                                notification.getUser().getId(),
+                                                notification.getContent(),
+                                                notification.getIsRead(),
+                                                notification.getCreatedAt()))
+                                .collect(Collectors.toList());
         }
 }

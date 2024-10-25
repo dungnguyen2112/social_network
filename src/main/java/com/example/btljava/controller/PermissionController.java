@@ -1,5 +1,6 @@
 package com.example.btljava.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -76,7 +77,7 @@ public class PermissionController {
     @GetMapping("/permissions")
     @ApiMessage("Fetch permissions")
     public ResponseEntity<ResultPaginationDTO> getPermissions(
-            @Filter Specification<Permission> spec, Pageable pageable) {
+            @Filter Specification<Permission> spec, @ParameterObject Pageable pageable) {
 
         return ResponseEntity.ok(this.permissionService.getPermissions(spec, pageable));
     }

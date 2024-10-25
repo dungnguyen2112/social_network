@@ -1,5 +1,6 @@
 package com.example.btljava.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -82,7 +83,7 @@ public class UserController {
     @ApiMessage("fetch all users")
     public ResponseEntity<ResultPaginationDTO> getAllUser(
             @Filter Specification<User> spec,
-            Pageable pageable) {
+            @ParameterObject Pageable pageable) {
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 this.userService.fetchAllUser(spec, pageable));
